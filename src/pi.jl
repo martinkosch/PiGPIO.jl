@@ -120,19 +120,16 @@ Runs an extended pigpio socket command.
     p3:= total size in bytes of following extents
 extents:= additional data blocks
 """
-function _pigpio_command_ext(sl, cmd, p1, p2, p3, extents, rl=true)
-    ext = IOBuffer()
-    Base.write(ext, Array(reinterpret(UInt8, [cmd, p1, p2, p3])))
-    for x in extents
-       write(ext, string(x))
-    end
-    lock(sl.l)
-    write(sl.s, ext)
-    msg = reinterpret(Cuint, sl.s)[4]
-    if rl
-         unlock(sl.l)
-    end
-    return res
+function _pigpio_command_ext(sl::SockLock, cmd::Integer, p1::Integer, p2::Integer, p3::Integer, extents::IO, rl=true)
+   lock(sl.l)
+   Base.write(sl.s, UInt32.([cmd, p1, p2, p3]))
+   Base.write(sl.s, take!(extents))
+   out = IOBuffer(Base.read(sl.s, 16))
+   msg = reinterpret(Cuint, take!(out))[4]
+   if rl
+      unlock(sl.l)
+   end
+   return msg
 end
 
 """An ADT class to hold callback information
