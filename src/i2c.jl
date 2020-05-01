@@ -35,7 +35,7 @@ Count (8 bits): A byte defining the length of a block operation.
 h = i2c_open(pi, 1, 0x53) # open device at address 0x53 on bus 1
 ...
 """
-function i2c_open(self::Pi, i2c_bus, i2c_address, i2c_flags=0)
+function i2c_open(self::Pi, i2c_bus::Integer, i2c_address::Integer, i2c_flags::Integer=0)
     # I p1 i2c_bus
     # I p2 i2c_addr
     # I p3 4
@@ -98,7 +98,7 @@ i2c_write_byte(pi, 2, 0x23) # send byte 0x23 to device 2
 """
 function i2c_write_byte(self::Pi, handle, byte_val)
     return _u2i(
-        _pigpio_command(self.sl, _PI_CMD_I2CWS, handle, byte_val))
+        _pigpio_command(self.sl, _PI_CMD_I2CWS, handle, UInt8(byte_val)))
 end
 
 """
@@ -609,7 +609,7 @@ function i2c_zip(self::Pi, handle, data)
     bytes = u2i(_pigpio_command_ext(
     self.sl, _PI_CMD_I2CZ, handle, 0, length(data), data, false))
     if bytes > 0
-        data = self._rxbuf(bytes)
+        data = rxbuf(self, bytes)
     else
         data = ""
     end
@@ -748,7 +748,7 @@ function bb_i2c_zip(self::Pi, SDA, data)
     bytes = u2i(_pigpio_command_ext(
     self.sl, _PI_CMD_BI2CZ, SDA, 0, length(data), [data], false))
     if bytes > 0
-        data = self._rxbuf(bytes)
+        data = rxbuf(self, bytes)
     else
         data = ""
     end
